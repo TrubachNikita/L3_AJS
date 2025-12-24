@@ -1,29 +1,37 @@
-const fetch = require("node-fetch");
+const BASE_URL = 'https://jsonplaceholder.typicode.com';
 
-// /users – оставить только нужные поля
-function getUsers() {
-  return fetch("https://jsonplaceholder.typicode.com/users")
-    .then((res) => res.json())
-    .then((users) =>
-      users.map(({ id, name, username, email, phone }) => ({
-        id,
-        name,
-        username,
-        email,
-        phone,
-      }))
-    );
+function processUsers() {
+    fetch(`${BASE_URL}/users`)
+        .then(response => {
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return response.json();
+        })
+        .then(users => {
+            const result = users.map(({ id, name, username, email, phone }) => ({
+                id,
+                name,
+                username,
+                email,
+                phone
+            }));
+            
+            console.log('--- PROMISES: USERS (Filtered Fields) ---');
+            console.log(result.slice(0, 3));
+        })
+        .catch(error => console.error('Users Error:', error));
 }
 
-// /todos – оставить только те, где completed = false
-function getTodos() {
-  return fetch("https://jsonplaceholder.typicode.com/todos")
-    .then((res) => res.json())
-    .then((todos) => todos.filter((todo) => !todo.completed));
+function processTodos() {
+    fetch(`${BASE_URL}/todos`)
+        .then(response => response.json())
+        .then(todos => {
+            const uncompleted = todos.filter(todo => !todo.completed);
+
+            console.log('--- PROMISES: TODOS (Only Uncompleted) ---');
+            console.log(uncompleted.slice(0, 3));
+        })
+        .catch(error => console.error('Todos Error:', error));
 }
 
-// Пример вызова
-getUsers().then((data) => console.log("Users:", data));
-getTodos().then((data) =>
-  console.log("Todos (not completed):", data.slice(0, 5))
-);
+processUsers();
+processTodos();
