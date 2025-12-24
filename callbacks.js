@@ -1,35 +1,39 @@
-const https = require("https");
+const BASE_URL = 'https://jsonplaceholder.typicode.com';
 
-function fetchData(url, callback) {
-  https.get(url, (res) => {
-    let data = "";
-    res.on("data", (chunk) => (data += chunk));
-    res.on("end", () => callback(null, JSON.parse(data)));
-  }).on("error", (err) => callback(err));
+function request(endpoint, callback) {
+    fetch(`${BASE_URL}${endpoint}`)
+        .then(response => response.json())
+        .then(data => callback(null, data))
+        .catch(error => callback(error, null));
 }
 
-function getPosts(callback) {
-  fetchData("https://jsonplaceholder.typicode.com/posts", (err, posts) => {
-    if (err) return callback(err);
-    const sorted = posts.sort((a, b) => b.title.length - a.title.length);
-    callback(null, sorted);
-  });
+function processPosts() {
+    request('/posts', (error, posts) => {
+        if (error) {
+            console.error('Error fetching posts:', error);
+            return;
+        }
+
+        const sortedPosts = posts.sort((a, b) => b.title.length - a.title.length);
+        
+        console.log('--- CALLBACKS: POSTS (Sorted by Title Length DESC) ---');
+        console.log(sortedPosts.slice(0, 3));
+    });
 }
 
-function getComments(callback) {
-  fetchData("https://jsonplaceholder.typicode.com/comments", (err, comments) => {
-    if (err) return callback(err);
-    const sorted = comments.sort((a, b) => a.name.localeCompare(b.name));
-    callback(null, sorted);
-  });
+function processComments() {
+    request('/comments', (error, comments) => {
+        if (error) {
+            console.error('Error fetching comments:', error);
+            return;
+        }
+
+        const sortedComments = comments.sort((a, b) => a.name.localeCompare(b.name));
+
+        console.log('--- CALLBACKS: COMMENTS (Sorted by Name ASC) ---');
+        console.log(sortedComments.slice(0, 3)); 
+    });
 }
 
-getPosts((err, data) => {
-  if (err) console.error(err);
-  else console.log("Posts sorted by title length:", data.slice(0, 5));
-});
-
-getComments((err, data) => {
-  if (err) console.error(err);
-  else console.log("Comments sorted by name:", data.slice(0, 5));
-});
+processPosts();
+processComments();
